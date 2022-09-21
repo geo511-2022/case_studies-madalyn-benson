@@ -1,0 +1,30 @@
+# For help debugging build failures open an issue on the RStudio community with the 'github-actions' tag.
+# https://community.rstudio.com/new-topic?category=Package%20development&tags=github-actions
+name: Case Study 02
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    container: rocker/geospatial:latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@master
+      - name: Install dependencies
+        run: |
+          install.packages(c("testthat","tidyverse","RCurl","questionr"))
+        shell: Rscript {0}
+      - name: Install all needed packages
+        run: questionr::qscan(list.files(pattern="*.R",recursive=T), load = TRUE, detail = FALSE)
+        shell: Rscript {0}
+      - name: Case Study 02
+        run: testthat::test_file("tests/testthat/test-CS02.R",stop_on_failure = TRUE,reporter = "progress")
+        shell: Rscript {0}
+      
+      

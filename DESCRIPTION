@@ -1,0 +1,21 @@
+Package: GEO511_CaseStudy_Template
+Title: Template for GEO511 Case Studies
+Version: 0.1.0
+Author: Adam M. Wilson <adamw@buffalo.edu>
+Maintainer: Adam M. Wilson <adamw@buffalo.edu>
+Description: Template used to create student projects. 
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports:
+    rmarkdown,
+    tidyverse,
+    RCurl,
+    testthat,
+    kableExtra,
+    knitr,
+    leaflet
+Suggests: 
+RoxygenNote: 7.1.1
+URL: https://github.com/AdamWilsonLabEDU/geo511_project_template
+BugReports: https://github.com/AdamWilsonLabEDU/geo511_project_template/issues

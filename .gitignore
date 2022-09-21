@@ -1,0 +1,16 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*wc
+*.csv
+*.tif
+*cache*
+.zip
+.bil
+.hdr
+.xls
+.nc
+.netcdf
+.h5
+tests/testthat/test-case_studies.R

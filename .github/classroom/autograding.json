@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "Test the mean",
+      "setup": "chmod a+x tests/test.sh",
+      "run": "tests/test.sh",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 1000,
+      "points": 1
+    }
+  ]
+}
