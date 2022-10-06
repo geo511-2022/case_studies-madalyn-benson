@@ -10,6 +10,7 @@ output: github_document
 library(tidyverse)
 library(nycflights13)
 head("nycflights13")
+
 flights
 Flights_by_distance <- arrange(flights, desc(distance))
 view(Flights_by_distance)
@@ -18,6 +19,7 @@ view(airports)
 farthest_airport <- left_join(Furthest_airport_from_nyc,airports,by=c("dest"="faa")) %>%
 select(name) %>%
 as.character()
+
 ```{r}
 summary(cars)
 ```
