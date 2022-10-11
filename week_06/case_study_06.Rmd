@@ -1,7 +1,33 @@
 ---
 title: "Case Study 06"
-author: Your Name
-date: August 1, 2020
+author: Madalyn Benson
+date: October 11, 2022
 output: github_document
 ---
- 
+install.packages("raster")
+install.packages("sp")
+install.packages("ncdf4")
+library(raster)
+library(sp)
+library(spData)
+library(tidyverse)
+library(sf)
+library(ncdf4)
+download.file("https://crudata.uea.ac.uk/cru/data/temperature/absolute.nc","crudata.nc")
+tmean=raster("crudata.nc")
+
+data(world)  #load 'world' data from spData package
+without_antarctica <- world %>% filter(continent !="Antarctica")
+names(tmean) <- "tmax"
+
+tmax_each_country <- raster::extract(tmean, without_antarctica, fun=max,na.rm=T,small=T,sp=T)
+tmax_country <- st_as_sf(tmax_each_country)
+
+ggplot(tmax_country,aes(fill=tmax)) + 
+geom_sf() + 
+scale_fill_viridis_c(name="Annual\nMaximum\nTemperature (C)") + 
+theme(legend.position = 'bottom')
+
+hottest_continents <- tmax_country %>% group_by(continent) %>% top_n(1, tmax) %>% st_set_geometry(NULL) %>% arrange(desc(tmax))
+
+hottest_continents
