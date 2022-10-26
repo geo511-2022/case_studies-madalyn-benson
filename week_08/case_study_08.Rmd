@@ -1,7 +1,35 @@
 ---
 title: "Case Study 08"
-author: Your Name
-date: August 1, 2020
-output: github_document
+author: Madalyn Benson
+date: September 25, 2022
+output: 
+  html_document: default
+  github_document: default
+  powerpoint_presentation: default
+  word_document: default
 ---
- 
+
+```{r, results='hide',message=FALSE, echo=F}
+library(tidyverse)
+library(ggplot2)
+
+co2_time <- read_table("ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_annmean_mlo.txt", skip=57, col_names=c("year","mean","unc"), comment="#")
+
+ggplot(co2_time, aes(year,mean))+
+  geom_smooth()+
+  geom_point()+
+  ggtitle("Carbon Dioxide Concentrations at Mauna Loa Observatory 1959-2021")+
+  xlab("Year")+
+  ylab("Mauna Loa Annual Mean CO2 (ppm)")
+
+
+top5 <- arrange(co2_time, desc(mean))[1:5,]
+kable(top5, caption= "Top Five Annual Mean Carbon Dioxide Concentrations at Mauna Loa",   col.names=c("Year","Mean", "unc"))%>%
+  kable_styling(latex_options = c("striped", "scale_down")
+    )%>%
+  row_spec(1, color = "red") %>%
+  as_image(width = 10,file = "table.png")
+```
+```{r}
+# rmarkdown::render("case_study_08.rmd", output_format = "all")
+```
