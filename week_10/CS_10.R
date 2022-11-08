@@ -304,7 +304,14 @@ lst=setZ(lst,tdates)
 lw=SpatialPoints(data.frame(x= -78.791547,y=43.007211))
 projection(lw) ='+proj=longlat'
 lw = spTransform(lw, projection(lulc))
-Extract_LSD = raster::extract(lst,lw,buffer=1000,fun=mean,na.rm=T)
+Extract_LSD= raster::extract(lst,lw,buffer=1000,fun=mean,na.rm=T)%>%t()
+getZ(lst)
+Extract_df=cbind.data.frame(tdates,Extract_LSD)
+library(ggplot2)
+ggplot(Extract_df, aes(x=tdates, y=Extract_LSD)) +
+  geom_point()+
+  geom_smooth(n=5000, span=.05, fullrange=FALSE)
+
 #' # Part 2: Summarize weekly data to monthly climatologies
 #' 
 #' Now we will use a function called `stackApply()` to calculate monthly mean land surface temperature.
