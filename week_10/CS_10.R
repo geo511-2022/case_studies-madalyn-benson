@@ -327,17 +327,21 @@ ggplot(Extract_df, aes(x=tdates, y=Extract_LSD)) +
 #' 3. Set the names of the layers to months with `names(lst_month)=month.name`
 #' 4. Plot the map for each month with `gplot()` in the RasterVis Package.
 #' 5. Calculate the monthly mean for the entire image with `cellStats(lst_month,mean)`
-#' 
-#' </div>
-#' </div>
-#' 
-#' A plot of the monthly climatologies will look like this:
 
-#' 
-#' And the table should be as follows:
+tmonth <- as.numeric(format(getZ(lst),"%m"))
+lst_month <- stackApply(lst, tmonth, fun=sum)
+names(lst_month) =  month.name
 
-#' 
-#' 
+library(rasterVis)
+gplot(lst_month) + 
+  geom_tile(aes(fill = value)) +
+  facet_wrap(~ variable) + 
+  coord_sf(datum = NA)
+
+monthly_mean <- cellStats(lst_month, mean)
+monthly_mean
+
+
 #' ## Part 3: Summarize Land Surface Temperature by Land Cover
 #' 
 #' Make a plot and table to contrast Land Surface Temperature in _Urban & built-up_ and _Deciduous Broadleaf forest_ areas. 
