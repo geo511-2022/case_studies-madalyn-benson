@@ -47,14 +47,14 @@ library(ncdf4) # to import data from netcdf format
 #' 
 ## ---- eval=F, warning=F-------------------------------------------------------
 ## # Create afolder to hold the downloaded data
-## dir.create("data",showWarnings = F) #create a folder to hold the data
+dir.create("data",showWarnings = F) #create a folder to hold the data
 ## 
-## lulc_url="https://github.com/adammwilson/DataScienceData/blob/master/inst/extdata/appeears/MCD12Q1.051_aid0001.nc?raw=true"
-## lst_url="https://github.com/adammwilson/DataScienceData/blob/master/inst/extdata/appeears/MOD11A2.006_aid0001.nc?raw=true"
+lulc_url="https://github.com/adammwilson/DataScienceData/blob/master/inst/extdata/appeears/MCD12Q1.051_aid0001.nc?raw=true"
+lst_url="https://github.com/adammwilson/DataScienceData/blob/master/inst/extdata/appeears/MOD11A2.006_aid0001.nc?raw=true"
 ## 
 ## # download them
-## download.file(lulc_url,destfile="data/MCD12Q1.051_aid0001.nc", mode="wb")
-## download.file(lst_url,destfile="data/MOD11A2.006_aid0001.nc", mode="wb")
+download.file(lulc_url,destfile="data/MCD12Q1.051_aid0001.nc", mode="wb")
+download.file(lst_url,destfile="data/MOD11A2.006_aid0001.nc", mode="wb")
 
 #' 
 #' 
@@ -163,15 +163,17 @@ plot(lst[[1:10]])
 #' 
 #' [MOD11A2 QC Layer table](https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod11a2)
 #' 
-
+lstqc=stack("data/MOD11A2.006_aid0001.nc",varname="QC_Day")
+plot(lstqc[[1:2]])
 #' 
 #' ### LST QC data
-#' 
+values(lstqc[[1:2]])%>%table()
 #' QC data are encoded in 8-bit 'words' to compress information.
 #' 
-
+intToBits(65)
 #' 
-
+intToBits(65)[1:8]
+as.integer(intToBits(65)[1:8])
 #' #### MODIS QC data are _Big Endian_
 #' 
 #' Format          Digits              value     sum
@@ -182,7 +184,7 @@ plot(lst[[1:10]])
 #' 
 #' Reverse the digits with `rev()` and compare with QC table above.
 #' 
-
+rev(as.integer(intToBits(65)[1:8]))
 #' QC for value `65`:
 #' 
 #' * LST produced, other quality, recommend examination of more detailed QA
@@ -192,15 +194,56 @@ plot(lst[[1:10]])
 #' 
 #' ### Filter the the lst data using the QC data
 #' 
+## set up data frame to hold all combinations
+QC_Data <- data.frame(Integer_Value = 0:255,
+                      Bit7 = NA, Bit6 = NA, Bit5 = NA, Bit4 = NA,
+                      Bit3 = NA, Bit2 = NA, Bit1 = NA, Bit0 = NA,
+                      QA_word1 = NA, QA_word2 = NA, QA_word3 = NA,
+                      QA_word4 = NA)
 
+## 
+for(i in QC_Data$Integer_Value){
+  AsInt <- as.integer(intToBits(i)[1:8])
+  QC_Data[i+1,2:9]<- AsInt[8:1]
+}
+
+QC_Data$QA_word1[QC_Data$Bit1 == 0 & QC_Data$Bit0==0] <- "LST GOOD"
+QC_Data$QA_word1[QC_Data$Bit1 == 0 & QC_Data$Bit0==1] <- "LST Produced,Other Quality"
+QC_Data$QA_word1[QC_Data$Bit1 == 1 & QC_Data$Bit0==0] <- "No Pixel,clouds"
+QC_Data$QA_word1[QC_Data$Bit1 == 1 & QC_Data$Bit0==1] <- "No Pixel, Other QA"
+
+QC_Data$QA_word2[QC_Data$Bit3 == 0 & QC_Data$Bit2==0] <- "Good Data"
+QC_Data$QA_word2[QC_Data$Bit3 == 0 & QC_Data$Bit2==1] <- "Other Quality"
+QC_Data$QA_word2[QC_Data$Bit3 == 1 & QC_Data$Bit2==0] <- "TBD"
+QC_Data$QA_word2[QC_Data$Bit3 == 1 & QC_Data$Bit2==1] <- "TBD"
+
+QC_Data$QA_word3[QC_Data$Bit5 == 0 & QC_Data$Bit4==0] <- "Emiss Error <= .01"
+QC_Data$QA_word3[QC_Data$Bit5 == 0 & QC_Data$Bit4==1] <- "Emiss Err >.01 <=.02"
+QC_Data$QA_word3[QC_Data$Bit5 == 1 & QC_Data$Bit4==0] <- "Emiss Err >.02 <=.04"
+QC_Data$QA_word3[QC_Data$Bit5 == 1 & QC_Data$Bit4==1] <- "Emiss Err > .04"
+
+QC_Data$QA_word4[QC_Data$Bit7 == 0 & QC_Data$Bit6==0] <- "LST Err <= 1"
+QC_Data$QA_word4[QC_Data$Bit7 == 0 & QC_Data$Bit6==1] <- "LST Err > 2 LST Err <= 3"
+QC_Data$QA_word4[QC_Data$Bit7 == 1 & QC_Data$Bit6==0] <- "LST Err > 1 LST Err <= 2"
+QC_Data$QA_word4[QC_Data$Bit7 == 1 & QC_Data$Bit6==1] <- "LST Err > 4"
+kable(head(QC_Data))
 #' 
 #' ### Select which QC Levels to keep
-
+keep=QC_Data[QC_Data$Bit1 == 0,]
+keepvals=unique(keep$Integer_Value)
+keepvals
 #' 
 #' ### How many observations will be dropped?
 #' 
+qcvals=table(values(lstqc))  # this takes a minute or two
 
-#' 
+
+QC_Data%>%
+  dplyr::select(everything(),-contains("Bit"))%>%
+  mutate(Var1=as.character(Integer_Value),
+         keep=Integer_Value%in%keepvals)%>%
+  inner_join(data.frame(qcvals))%>%
+  kable()
 #' Do you want to update the values you are keeping?
 #' 
 #' ### Filter the LST Data keeping only `keepvals`
@@ -208,14 +251,19 @@ plot(lst[[1:10]])
 #' These steps take a couple minutes.  
 #' 
 #' Make logical flag to use for mask
-
+lstkeep=calc(lstqc,function(x) x%in%keepvals)
 #' 
 #' Plot the mask
-
+gplot(lstkeep[[4:8]])+
+  geom_raster(aes(fill=as.factor(value)))+
+  facet_grid(variable~.)+
+  scale_fill_manual(values=c("blue","red"),name="Keep")+
+  coord_equal()+
+  theme(legend.position = "bottom")
 #' 
 #' 
 #' Mask the lst data using the QC data and overwrite the original data.
-
+lst=mask(lst,mask=lstkeep,maskval=0)
 #' 
 #' </div>
 #' </div>
@@ -226,7 +274,7 @@ plot(lst[[1:10]])
 #' 
 #' The default layer names of the LST file include the date as follows:
 #' 
-
+names(lst)[1:5]
 #' 
 #' Convert those values to a proper R Date format by dropping the "X" and using `as.Date()`.
 ## -----------------------------------------------------------------------------
@@ -253,16 +301,10 @@ lst=setZ(lst,tdates)
 #' 4. Extract the LST data for that location with: `extract(lst,lw,buffer=1000,fun=mean,na.rm=T)`.  You may want to transpose them with `t()` to convert it from a wide matrix to long vector.
 #' 5. Extract the dates for each layer with `getZ(lst)` and combine them into a data.frame with the transposed raster values.  You could use `data.frame()`, `cbind.data.frame()` or `bind_cols()` to do this. The goal is to make a single dataframe with the dates and lst values in columns.
 #' 6. Plot it with `ggplot()` including points for the raw data and a smooth version as a line.  You will probably want to adjust both `span` and `n` in `geom_smooth`.
-#' 
-#' </div>
-#' </div>
-#' 
-#' Your graph should look like this:
-
-#' 
-#' See the `library(rts)` for more timeseries related functions.
-#' 
-#' 
+lw=SpatialPoints(data.frame(x= -78.791547,y=43.007211))
+projection(lw) ='+proj=longlat'
+lw = spTransform(lw, projection(lulc))
+Extract_LSD = raster::extract(lst,lw,buffer=1000,fun=mean,na.rm=T)
 #' # Part 2: Summarize weekly data to monthly climatologies
 #' 
 #' Now we will use a function called `stackApply()` to calculate monthly mean land surface temperature.
