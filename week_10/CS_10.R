@@ -338,9 +338,10 @@ gplot(lst_month) +
   facet_wrap(~ variable) + 
   coord_sf(datum = NA)
 
-monthly_mean <- cellStats(lst_month, mean)
-monthly_mean
-
+cellStats(lst_month, mean) %>%
+  as.data.frame() %>% 
+  rename(mean = ".") %>% 
+  kable()
 
 #' ## Part 3: Summarize Land Surface Temperature by Land Cover
 #' 
@@ -368,6 +369,17 @@ monthly_mean
 #' </div>
 #' </div>
 #' 
+lulc2 <- resample(lulc, lst, method="ngb")
+
+lcds1=cbind.data.frame(
+  values(lst_month),
+  ID=values(lulc2[[1]]))%>%
+  na.omit()%>%
+  gather(key='month',value='value',-ID) %>%
+  mutate(ID=as.numeric(ID)) %>%
+  mutate(month=factor(month,levels=month.name,ordered=T)) %>%
+  left_join(lcd) %>%
+  filter(landcover%in%c("Urban & Built-up","Deciduous Broadleaf Forest"))
 
 #' 
 #' One potential plot is as follows:
