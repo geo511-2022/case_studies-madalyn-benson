@@ -1,13 +1,24 @@
 ---
 title: "Case Study 04"
-author: Your Name
-date: August 1, 2020
+author: Madalyn Benson
+date: September 27, 2022
 output: github_document
 ---
 
 ## First Header
 
-Comments
+library(tidyverse)
+library(nycflights13)
+head("nycflights13")
+
+flights
+Flights_by_distance <- arrange(flights, desc(distance))
+view(Flights_by_distance)
+Furthest_airport_from_nyc <- slice(Flights_by_distance, n=150)
+view(airports)
+farthest_airport <- left_join(Furthest_airport_from_nyc,airports,by=c("dest"="faa")) %>%
+select(name) %>%
+as.character()
 
 ```{r}
 summary(cars)

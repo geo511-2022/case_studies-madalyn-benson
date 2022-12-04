@@ -1,7 +1,39 @@
 ---
 title: "Case Study 05"
-author: Your Name
+author: Madalyn Benson
 date: August 1, 2020
 output: github_document
 ---
+ library(spData)
+ library(sf)
+ library(tidyverse)
+ library(units)
  
+ data(world)
+ data(us_states)
+ plot(world[1])
+ plot(us_states[1])
+ 
+albers <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"
+
+worldData <- st_transform(world,crs=st_crs(albers))
+ 
+canada <- worldData%>%filter(name_long=="Canada")
+canada_buffer <- st_buffer(canada, dist=10000)
+
+US <- st_transform(us_states, crs=st_crs(albers))
+
+newyork <- US %>% filter(NAME=="New York")
+
+borderOb <- st_intersection(newyork, canada_buffer)
+ggplot(newyork) +
+  geom_sf() +
+  geom_sf(data=borderOb, aes(fill = "red"))+
+  labs(title = "New York Land within 10km") +
+  theme(legend.position = "none", plot.title = element_text(size=22)) 
+
+  
+area <- st_area(borderOb)
+set_units(area,km^2)
+
+  

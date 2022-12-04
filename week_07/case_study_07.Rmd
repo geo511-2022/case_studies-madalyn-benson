@@ -1,7 +1,12 @@
 ---
 title: "Case Study 07"
-author: Your Name
-date: August 1, 2020
+author: Madalyn Benson
+date: October 18, 2022
 output: github_document
 ---
- 
+library(spData)
+library(ggplot2)
+data(world)
+
+ggplot(world,aes(x=gdpPercap, y=continent, color=continent))+
+   geom_density(alpha=0.5,color=F)
